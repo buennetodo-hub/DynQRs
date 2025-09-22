@@ -53,24 +53,33 @@
   </style>
 </head>
 <body>
-<script>
+
+  <script>
   const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
   var url = document.location.href;
   var k = url.substr(url.lastIndexOf("k=")+2);
-  
+
+  // Generar o recuperar un identificador único en el navegador
+  let uid = localStorage.getItem("myUID");
+  if (!uid) {
+    uid = "UID-" + Math.random().toString(36).substring(2) + Date.now();
+    localStorage.setItem("myUID", uid);
+  }
+
   if(k) {
-    fetch(AS_URL_BASE+'?k='+k)
+    fetch(AS_URL_BASE+'?k='+k+'&uid='+uid)
     .then(r => r.text())
     .then((r) => {
-      console.log(r);
-      //document.write(r);
       if(r){
         document.location.replace(r);
       }
     })
     .catch(err => console.log(err))
   }
-  </script>
+</script>
+
+
+  
 
   <div class="lds-hourglass"></div>
   
