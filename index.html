@@ -103,8 +103,20 @@
             // Generar fingerprint del usuario
             const userInfo = generateFingerprint();
             
-            // Enviar solicitud con el parámetro k y el fingerprint
-            fetch(AS_URL_BASE + '?k=' + k + '&fingerprint=' + encodeURIComponent(userInfo.fingerprint) + '&userAgent=' + encodeURIComponent(userInfo.userAgent) + '&screenRes=' + encodeURIComponent(userInfo.screenResolution) + '&timezone=' + encodeURIComponent(userInfo.timezone) + '&language=' + encodeURIComponent(userInfo.language))
+            // Crear objeto con los datos para enviar por POST
+            const formData = new FormData();
+            formData.append('k', k);
+            formData.append('fingerprint', userInfo.fingerprint);
+            formData.append('userAgent', userInfo.userAgent);
+            formData.append('screenRes', userInfo.screenResolution);
+            formData.append('timezone', userInfo.timezone);
+            formData.append('language', userInfo.language);
+            
+            // Enviar por POST para evitar problemas con URL muy largas
+            fetch(AS_URL_BASE, {
+                method: 'POST',
+                body: formData
+            })
                 .then(r => r.text())
                 .then((r) => {
                     console.log(r);
@@ -112,7 +124,18 @@
                         document.location.replace(r);
                     }
                 })
-                .catch(err => console.log(err))
+                .catch(err => {
+                    console.log("Error con POST, intentando con GET simplificado:", err);
+                    // Fallback: solo enviar k y fingerprint básico por GET
+                    fetch(AS_URL_BASE + '?k=' + k + '&fingerprint=' + encodeURIComponent(userInfo.fingerprint))
+                        .then(r => r.text())
+                        .then((r) => {
+                            if (r) {
+                                document.location.replace(r);
+                            }
+                        })
+                        .catch(err2 => console.log("Error también con GET:", err2));
+                })
         }
     </script>
     <div class="lds-hourglass"></div>
