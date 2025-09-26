@@ -16,7 +16,33 @@ body { background-color: #fff; text-align: center; margin-top: 100px; }
 <script>
 const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
 
-// Función para generar un ID único
+// --- FUNCIONES PARA MANEJAR COOKIES ---
+
+// Función para establecer una cookie
+function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+        let date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    // Se establece una cookie que dura 365 días
+    document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax; Secure";
+}
+
+// Función para obtener el valor de una cookie
+function getCookie(name) {
+    let nameEQ = name + "=";
+    let ca = document.cookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+// Función para generar un ID único (UUID)
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -24,13 +50,17 @@ function generateUUID() {
   });
 }
 
-// Obtener o crear el identificador de usuario
-let userId = localStorage.getItem('userId');
+// --- LÓGICA PRINCIPAL ---
+
+// Obtener o crear el identificador de usuario desde la cookie
+let userId = getCookie('userId');
 if (!userId) {
   userId = generateUUID();
-  localStorage.setItem('userId', userId);
+  // Se establece la cookie para que expire en 365 días
+  setCookie('userId', userId, 365);
 }
 
+// Extraer el parámetro 'k' de la URL actual
 var url = document.location.href;
 var k = url.substr(url.lastIndexOf("k=")+2);
 
@@ -40,6 +70,7 @@ if(k) {
     .then(r => r.text())
     .then((r) => {
       console.log(r);
+      // Si el script de Google devuelve una URL, redirigir
       if(r){
         document.location.replace(r);
       }
