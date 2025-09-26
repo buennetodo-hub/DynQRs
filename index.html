@@ -1,83 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title></title>
-<style>
-body { background-color: #fff; text-align: center; margin-top: 100px; }
-.lds-hourglass { /* change color here */ color: #000000 }
-.lds-hourglass, .lds-hourglass:after { box-sizing: border-box; }
-.lds-hourglass { display: inline-block; position: relative; width: 80px; height: 80px; }
-.lds-hourglass:after { content: " "; display: block; border-radius: 50%; width: 0; height: 0; margin: 8px; box-sizing: border-box; border: 32px solid currentColor; border-color: currentColor transparent currentColor transparent; animation: lds-hourglass 1.2s infinite; }
-@keyframes lds-hourglass { 0% { transform: rotate(0); animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19); } 50% { transform: rotate(900deg); animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1); } 100% { transform: rotate(1800deg); } }
-</style>
+    <meta charset="utf-8">
+    <title>Redirigiendo...</title>
+    <style>
+        body {
+            background-color: #fff;
+            text-align: center;
+            margin-top: 100px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .lds-hourglass {
+            /* change color here */
+            color: #000000;
+        }
+        
+        .lds-hourglass,
+        .lds-hourglass:after {
+            box-sizing: border-box;
+        }
+        
+        .lds-hourglass {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        
+        .lds-hourglass:after {
+            content: " ";
+            display: block;
+            border-radius: 50%;
+            width: 0;
+            height: 0;
+            margin: 8px;
+            box-sizing: border-box;
+            border: 32px solid currentColor;
+            border-color: currentColor transparent currentColor transparent;
+            animation: lds-hourglass 1.2s infinite;
+        }
+        
+        @keyframes lds-hourglass {
+            0% {
+                transform: rotate(0);
+                animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+            }
+            50% {
+                transform: rotate(900deg);
+                animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+            }
+            100% {
+                transform: rotate(1800deg);
+            }
+        }
+        
+        .loading-text {
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .debug-info {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 10px;
+            color: #999;
+            background: rgba(0,0,0,0.1);
+            padding: 5px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
 </head>
 <body>
-<script>
-const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
-
-// --- FUNCIONES PARA MANEJAR COOKIES ---
-
-// Función para establecer una cookie
-function setCookie(name, value, days) {
-    let expires = "";
-    if (days) {
-        let date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        expires = "; expires=" + date.toUTCString();
-    }
-    // Se establece una cookie que dura 365 días
-    document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax; Secure";
-}
-
-// Función para obtener el valor de una cookie
-function getCookie(name) {
-    let nameEQ = name + "=";
-    let ca = document.cookie.split(';');
-    for(let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
-        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
-    }
-    return null;
-}
-
-// Función para generar un ID único (UUID)
-function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-}
-
-// --- LÓGICA PRINCIPAL ---
-
-// Obtener o crear el identificador de usuario desde la cookie
-let userId = getCookie('userId');
-if (!userId) {
-  userId = generateUUID();
-  // Se establece la cookie para que expire en 365 días
-  setCookie('userId', userId, 365);
-}
-
-// Extraer el parámetro 'k' de la URL actual
-var url = document.location.href;
-var k = url.substr(url.lastIndexOf("k=")+2);
-
-if(k) {
-  // Adjuntar la clave (k) y el identificador de usuario (uid) a la URL de la solicitud
-  fetch(AS_URL_BASE + '?k=' + k + '&uid=' + userId)
-    .then(r => r.text())
-    .then((r) => {
-      console.log(r);
-      // Si el script de Google devuelve una URL, redirigir
-      if(r){
-        document.location.replace(r);
-      }
-    })
-    .catch(err => console.log(err))
-}
-</script>
-<div class="lds-hourglass"></div>
+    <script>
+        const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
+        
+        // Función para generar UUID v4
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0;
+                var v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        
+        // Función para obtener información del dispositivo (opcional, para más contexto)
+        function getDeviceInfo() {
+            const ua = navigator.userAgent;
+            let deviceType = 'desktop';
+            let os = 'unknown';
+            
+            // Detectar tipo de dispositivo
+            if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+                deviceType = 'mobile';
+            } else if (/iPad/i.test(ua)) {
+                deviceType = 'tablet';
+            }
+            
+            // Detectar sistema operativo
+            if (/Windows/i.test(ua)) os = 'Windows';
+            else if (/Mac/i.test(ua)) os = 'Mac';
+            else if (/Android/i.test(ua)) os = 'Android';
+            else if (/iPhone|iPad/i.test(ua)) os = 'iOS';
+            else if (/Linux/i.test(ua)) os = 'Linux';
+            
+            return {
+                type: deviceType,
+                os: os,
+                timestamp: new Date().toISOString()
+            };
+        }
+        
+        // Función para obtener o crear ID de usuario persistente
+        function getUserId() {
+            const STORAGE_KEY = 'qr_user_id';
+            const DEVICE_INFO_KEY = 'qr_device_info';
+            
+            try {
+                // Intentar obtener ID existente
+                let userId = localStorage.getItem(STORAGE_KEY);
+                let deviceInfo = localStorage.getItem(DEVICE_INFO_KEY);
+                
+                if (!userId) {
+                    // Primera vez: generar nuevo ID
+                    userId = generateUUID();
+                    deviceInfo = JSON.stringify(getDeviceInfo());
+                    
+                    // Guardar en localStorage
+                    localStorage.setItem(STORAGE_KEY, userId);
+                    localStorage.setItem(DEVICE_INFO_KEY, deviceInfo);
+                    
+                    console.log('Nuevo usuario registrado:', userId);
+                } else {
+                    console.log('Usuario recurrente:', userId);
+                }
+                
+                return {
+                    id: userId,
+                    deviceInfo: deviceInfo ? JSON.parse(deviceInfo) : getDeviceInfo(),
+                    isNewUser: !localStorage.getItem(STORAGE_KEY + '_visited')
+                };
+                
+            } catch (error) {
+                // Si localStorage no está disponible (modo privado, etc.)
+                console.warn('LocalStorage no disponible, generando ID temporal:', error);
+                return {
+                    id: 'temp_' + generateUUID(),
+                    deviceInfo: getDeviceInfo(),
+                    isNewUser: true,
+                    isTemporary: true
+                };
+            }
+        }
+        
+        // Marcar que el usuario ya visitó (para distinguir nuevos usuarios de recurrentes)
+        function markUserVisited() {
+            try {
+                localStorage.setItem('qr_user_id_visited', 'true');
+            } catch (error) {
+                console.warn('No se pudo marcar usuario como visitado:', error);
+            }
+        }
+        
+        // Función principal
+        function processQRRedirect() {
+            var url = document.location.href;
+            var k = url.substr(url.lastIndexOf("k=")+2);
+            
+            if(k) {
+                // Obtener información del usuario
+                const userInfo = getUserId();
+                
+                // Mostrar información de debug
+                const debugDiv = document.createElement('div');
+                debugDiv.className = 'debug-info';
+                debugDiv.innerHTML = `
+                    User ID: ${userInfo.id}<br>
+                    ${userInfo.isNewUser ? 'Nuevo Usuario' : 'Usuario Recurrente'}<br>
+                    ${userInfo.isTemporary ? '(Temporal - Sin LocalStorage)' : '(Persistente)'}
+                `;
+                document.body.appendChild(debugDiv);
+                
+                // Construir URL con parámetros adicionales
+                const fetchUrl = `${AS_URL_BASE}?k=${k}&userId=${encodeURIComponent(userInfo.id)}&isNew=${userInfo.isNewUser}&device=${encodeURIComponent(JSON.stringify(userInfo.deviceInfo))}`;
+                
+                fetch(fetchUrl)
+                    .then(r => r.text())
+                    .then((r) => {
+                        console.log('Respuesta del servidor:', r);
+                        
+                        if(r && r.trim() !== "") {
+                            // Marcar usuario como visitado antes de redireccionar
+                            markUserVisited();
+                            document.location.replace(r);
+                        } else {
+                            // Sin redirección válida
+                            document.body.innerHTML = '<h2>No se encontró destino para este QR</h2>';
+                        }
+                    })
+                    .catch(err => {
+                        console.log('Error:', err);
+                        document.body.innerHTML = '<h2>Error al procesar el QR</h2><p>Intenta nuevamente</p>';
+                    });
+            } else {
+                document.body.innerHTML = '<h2>Código QR inválido</h2><p>No se encontró parámetro k</p>';
+            }
+        }
+        
+        // Ejecutar cuando la página cargue
+        document.addEventListener('DOMContentLoaded', processQRRedirect);
+        
+        // También ejecutar inmediatamente por si el DOM ya está listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', processQRRedirect);
+        } else {
+            processQRRedirect();
+        }
+    </script>
+    
+    <div class="lds-hourglass"></div>
+    <div class="loading-text">Procesando código QR...</div>
 </body>
 </html>
