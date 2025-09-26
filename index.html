@@ -178,32 +178,55 @@
                 const debugDiv = document.createElement('div');
                 debugDiv.className = 'debug-info';
                 debugDiv.innerHTML = `
-                    User ID: ${userInfo.id}<br>
+                    User ID: ${userInfo.id.substring(0, 8)}...<br>
                     ${userInfo.isNewUser ? 'Nuevo Usuario' : 'Usuario Recurrente'}<br>
+                    Dispositivo: ${userInfo.deviceInfo.type} (${userInfo.deviceInfo.os})<br>
                     ${userInfo.isTemporary ? '(Temporal - Sin LocalStorage)' : '(Persistente)'}
                 `;
                 document.body.appendChild(debugDiv);
                 
-                // Construir URL con parámetros adicionales
-                const fetchUrl = `${AS_URL_BASE}?k=${k}&userId=${encodeURIComponent(userInfo.id)}&isNew=${userInfo.isNewUser}&device=${encodeURIComponent(JSON.stringify(userInfo.deviceInfo))}`;
+                // Construir URL con parámetros adicionales - CORREGIDO
+                const params = new URLSearchParams({
+                    k: k,
+                    userId: userInfo.id,
+                    isNew: userInfo.isNewUser.toString(),
+                    deviceType: userInfo.deviceInfo.type,
+                    deviceOS: userInfo.deviceInfo.os,
+                    deviceTimestamp: userInfo.deviceInfo.timestamp
+                });
+                
+                const fetchUrl = `${AS_URL_BASE}?${params.toString()}`;
+                
+                console.log('Enviando request a:', fetchUrl);
+                console.log('Parámetros:', {
+                    k: k,
+                    userId: userInfo.id,
+                    isNew: userInfo.isNewUser,
+                    deviceType: userInfo.deviceInfo.type,
+                    deviceOS: userInfo.deviceInfo.os
+                });
                 
                 fetch(fetchUrl)
                     .then(r => r.text())
                     .then((r) => {
                         console.log('Respuesta del servidor:', r);
                         
-                        if(r && r.trim() !== "") {
+                        if(r && r.trim() !== "" && r.trim() !== "null") {
                             // Marcar usuario como visitado antes de redireccionar
                             markUserVisited();
-                            document.location.replace(r);
+                            
+                            // Pequeño delay para asegurar que el registro se complete
+                            setTimeout(() => {
+                                document.location.replace(r);
+                            }, 500);
                         } else {
                             // Sin redirección válida
-                            document.body.innerHTML = '<h2>No se encontró destino para este QR</h2>';
+                            document.body.innerHTML = '<h2>No se encontró destino para este QR</h2><p>Código: ' + k + '</p>';
                         }
                     })
                     .catch(err => {
                         console.log('Error:', err);
-                        document.body.innerHTML = '<h2>Error al procesar el QR</h2><p>Intenta nuevamente</p>';
+                        document.body.innerHTML = '<h2>Error al procesar el QR</h2><p>Intenta nuevamente</p><p>Error: ' + err.message + '</p>';
                     });
             } else {
                 document.body.innerHTML = '<h2>Código QR inválido</h2><p>No se encontró parámetro k</p>';
