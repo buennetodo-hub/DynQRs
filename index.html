@@ -1,77 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title></title>
-  <style>
-    body {
-      background-color: fff;
-      text-align: center;
-      margin-top: 100px;
-    }
-
-    .lds-hourglass {
-      /* change color here */
-      color: #000000
-    }
-    .lds-hourglass,
-    .lds-hourglass:after {
-      box-sizing: border-box;
-    }
-    .lds-hourglass {
-      display: inline-block;
-      position: relative;
-      width: 80px;
-      height: 80px;
-    }
-    .lds-hourglass:after {
-      content: " ";
-      display: block;
-      border-radius: 50%;
-      width: 0;
-      height: 0;
-      margin: 8px;
-      box-sizing: border-box;
-      border: 32px solid currentColor;
-      border-color: currentColor transparent currentColor transparent;
-      animation: lds-hourglass 1.2s infinite;
-    }
-    @keyframes lds-hourglass {
-      0% {
-        transform: rotate(0);
-        animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
-      }
-      50% {
-        transform: rotate(900deg);
-        animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-      }
-      100% {
-        transform: rotate(1800deg);
-      }
-    }
-  </style>
+    <meta charset="utf-8">
+    <title></title>
+    <style>
+        body {
+            background-color: fff;
+            text-align: center;
+            margin-top: 100px;
+        }
+        .lds-hourglass {
+            /* change color here */
+            color: #000000
+        }
+        .lds-hourglass, .lds-hourglass:after {
+            box-sizing: border-box;
+        }
+        .lds-hourglass {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        .lds-hourglass:after {
+            content: " ";
+            display: block;
+            border-radius: 50%;
+            width: 0;
+            height: 0;
+            margin: 8px;
+            box-sizing: border-box;
+            border: 32px solid currentColor;
+            border-color: currentColor transparent currentColor transparent;
+            animation: lds-hourglass 1.2s infinite;
+        }
+        @keyframes lds-hourglass {
+            0% {
+                transform: rotate(0);
+                animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+            }
+            50% {
+                transform: rotate(900deg);
+                animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+            }
+            100% {
+                transform: rotate(1800deg);
+            }
+        }
+    </style>
 </head>
 <body>
-<script>
-  const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
-  var url = document.location.href;
-  var k = url.substr(url.lastIndexOf("k=")+2);
-  
-  if(k) {
-    fetch(AS_URL_BASE+'?k='+k)
-    .then(r => r.text())
-    .then((r) => {
-      console.log(r);
-      //document.write(r);
-      if(r){
-        document.location.replace(r);
-      }
-    })
-    .catch(err => console.log(err))
-  }
-</script>
-
-<div class="lds-hourglass"></div>
-  
+    <script>
+        const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
+        
+        // Función para generar o recuperar ID único del usuario
+        function getUserId() {
+            let userId = localStorage.getItem('userId');
+            if (!userId) {
+                // Genera un ID único basado en timestamp y número aleatorio
+                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('userId', userId);
+            }
+            return userId;
+        }
+        
+        // Función para obtener información del dispositivo/navegador
+        function getDeviceInfo() {
+            return {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                screenResolution: screen.width + 'x' + screen.height,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+        }
+        
+        // Función para obtener IP aproximada (requiere servicio externo)
+        async function getApproximateLocation() {
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                return {
+                    ip: data.ip,
+                    city: data.city,
+                    country: data.country_name
+                };
+            } catch (error) {
+                console.log('No se pudo obtener información de ubicación:', error);
+                return { ip: 'unknown', city: 'unknown', country: 'unknown' };
+            }
+        }
+        
+        var url = document.location.href;
+        var k = url.substr(url.lastIndexOf("k=")+2);
+        
+        if(k) {
+            const userId = getUserId();
+            const deviceInfo = getDeviceInfo();
+            
+            // Obtener información de ubicación y luego hacer la petición principal
+            getApproximateLocation().then(locationInfo => {
+                const trackingData = {
+                    k: k,
+                    userId: userId,
+                    userAgent: deviceInfo.userAgent,
+                    language: deviceInfo.language,
+                    platform: deviceInfo.platform,
+                    screenResolution: deviceInfo.screenResolution,
+                    timezone: deviceInfo.timezone,
+                    ip: locationInfo.ip,
+                    city: locationInfo.city,
+                    country: locationInfo.country,
+                    referrer: document.referrer || 'direct'
+                };
+                
+                // Construir URL con parámetros de tracking
+                const trackingParams = new URLSearchParams(trackingData).toString();
+                
+                fetch(AS_URL_BASE + '?' + trackingParams)
+                    .then(r => r.text())
+                    .then((r) => {
+                        console.log(r);
+                        if(r) {
+                            document.location.replace(r);
+                        }
+                    })
+                    .catch(err => console.log(err));
+            });
+        }
+    </script>
+    <div class="lds-hourglass"></div>
 </body>
 </html>
