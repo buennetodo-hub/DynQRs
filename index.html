@@ -2,32 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Redirigiendo...</title>
+    <title></title>
     <style>
         body {
             background-color: #fff;
             text-align: center;
             margin-top: 100px;
-            font-family: Arial, sans-serif;
         }
-        
         .lds-hourglass {
-            /* change color here */
             color: #000000;
         }
-        
-        .lds-hourglass,
-        .lds-hourglass:after {
+        .lds-hourglass, .lds-hourglass:after {
             box-sizing: border-box;
         }
-        
         .lds-hourglass {
             display: inline-block;
             position: relative;
             width: 80px;
             height: 80px;
         }
-        
         .lds-hourglass:after {
             content: " ";
             display: block;
@@ -40,7 +33,6 @@
             border-color: currentColor transparent currentColor transparent;
             animation: lds-hourglass 1.2s infinite;
         }
-        
         @keyframes lds-hourglass {
             0% {
                 transform: rotate(0);
@@ -54,181 +46,25 @@
                 transform: rotate(1800deg);
             }
         }
-        
-        .loading-text {
-            margin-top: 20px;
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .debug-info {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            font-size: 10px;
-            color: #999;
-            background: rgba(0,0,0,0.1);
-            padding: 5px;
-            border-radius: 3px;
-            font-family: monospace;
-        }
     </style>
 </head>
 <body>
     <script>
         const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
-        
-        // Función para generar UUID v4
-        function generateUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0;
-                var v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
-        
-        // Función para obtener información del dispositivo (opcional, para más contexto)
-        function getDeviceInfo() {
-            const ua = navigator.userAgent;
-            let deviceType = 'desktop';
-            let os = 'unknown';
-            
-            // Detectar tipo de dispositivo
-            if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
-                deviceType = 'mobile';
-            } else if (/iPad/i.test(ua)) {
-                deviceType = 'tablet';
-            }
-            
-            // Detectar sistema operativo
-            if (/Windows/i.test(ua)) os = 'Windows';
-            else if (/Mac/i.test(ua)) os = 'Mac';
-            else if (/Android/i.test(ua)) os = 'Android';
-            else if (/iPhone|iPad/i.test(ua)) os = 'iOS';
-            else if (/Linux/i.test(ua)) os = 'Linux';
-            
-            return {
-                type: deviceType,
-                os: os,
-                timestamp: new Date().toISOString()
-            };
-        }
-        
-        // Función para obtener o crear ID de usuario persistente
-        function getUserId() {
-            const STORAGE_KEY = 'qr_user_id';
-            const DEVICE_INFO_KEY = 'qr_device_info';
-            
-            try {
-                // Intentar obtener ID existente
-                let userId = localStorage.getItem(STORAGE_KEY);
-                let deviceInfo = localStorage.getItem(DEVICE_INFO_KEY);
-                
-                if (!userId) {
-                    // Primera vez: generar nuevo ID
-                    userId = generateUUID();
-                    deviceInfo = JSON.stringify(getDeviceInfo());
-                    
-                    // Guardar en localStorage
-                    localStorage.setItem(STORAGE_KEY, userId);
-                    localStorage.setItem(DEVICE_INFO_KEY, deviceInfo);
-                    
-                    console.log('Nuevo usuario registrado:', userId);
-                } else {
-                    console.log('Usuario recurrente:', userId);
-                }
-                
-                return {
-                    id: userId,
-                    deviceInfo: deviceInfo ? JSON.parse(deviceInfo) : getDeviceInfo(),
-                    isNewUser: !localStorage.getItem(STORAGE_KEY + '_visited')
-                };
-                
-            } catch (error) {
-                // Si localStorage no está disponible (modo privado, etc.)
-                console.warn('LocalStorage no disponible, generando ID temporal:', error);
-                return {
-                    id: 'temp_' + generateUUID(),
-                    deviceInfo: getDeviceInfo(),
-                    isNewUser: true,
-                    isTemporary: true
-                };
-            }
-        }
-        
-        // Marcar que el usuario ya visitó (para distinguir nuevos usuarios de recurrentes)
-        function markUserVisited() {
-            try {
-                localStorage.setItem('qr_user_id_visited', 'true');
-            } catch (error) {
-                console.warn('No se pudo marcar usuario como visitado:', error);
-            }
-        }
-        
-        // Función principal
-        function processQRRedirect() {
-            var url = document.location.href;
-            var k = url.substr(url.lastIndexOf("k=")+2);
-            
-            if(k) {
-                // Obtener información del usuario
-                const userInfo = getUserId();
-                
-                // Mostrar información de debug
-                const debugDiv = document.createElement('div');
-                debugDiv.className = 'debug-info';
-                debugDiv.innerHTML = `
-                    User ID: ${userInfo.id}<br>
-                    ${userInfo.isNewUser ? 'Nuevo Usuario' : 'Usuario Recurrente'}<br>
-                    ${userInfo.isTemporary ? '(Temporal - Sin LocalStorage)' : '(Persistente)'}
-                `;
-                document.body.appendChild(debugDiv);
-                
-                // Construir URL con parámetros adicionales (simplificado)
-                const fetchUrl = `${AS_URL_BASE}?k=${k}&userId=${encodeURIComponent(userInfo.id)}&isNew=${userInfo.isNewUser}`;
-                
-                console.log('=== DEBUG CLIENTE ===');
-                console.log('QR Key (k):', k);
-                console.log('User ID:', userInfo.id);
-                console.log('Is New User:', userInfo.isNewUser);
-                console.log('URL completa:', fetchUrl);
-                console.log('=====================');
-                
-                fetch(fetchUrl)
-                    .then(r => r.text())
-                    .then((r) => {
-                        console.log('Respuesta del servidor:', r);
-                        
-                        if(r && r.trim() !== "") {
-                            // Marcar usuario como visitado antes de redireccionar
-                            markUserVisited();
-                            document.location.replace(r);
-                        } else {
-                            // Sin redirección válida
-                            document.body.innerHTML = '<h2>No se encontró destino para este QR</h2>';
-                        }
-                    })
-                    .catch(err => {
-                        console.log('Error:', err);
-                        document.body.innerHTML = '<h2>Error al procesar el QR</h2><p>Intenta nuevamente</p>';
-                    });
-            } else {
-                document.body.innerHTML = '<h2>Código QR inválido</h2><p>No se encontró parámetro k</p>';
-            }
-        }
-        
-        // Ejecutar cuando la página cargue
-        document.addEventListener('DOMContentLoaded', processQRRedirect);
-        
-        // También ejecutar inmediatamente por si el DOM ya está listo
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', processQRRedirect);
-        } else {
-            processQRRedirect();
+        var url = document.location.href;
+        var k = url.substr(url.lastIndexOf("k=") + 2);
+        if (k) {
+            fetch(AS_URL_BASE + '?k=' + k)
+                .then(r => r.text())
+                .then((r) => {
+                    console.log(r);
+                    if (r) {
+                        document.location.replace(r);
+                    }
+                })
+                .catch(err => console.log(err));
         }
     </script>
-    
     <div class="lds-hourglass"></div>
-    <div class="loading-text">Procesando código QR...</div>
 </body>
 </html>
