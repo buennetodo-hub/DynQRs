@@ -10,9 +10,11 @@
             margin-top: 100px;
         }
         .lds-hourglass {
-            color: #000000;
+            /* change color here */
+            color: #000000
         }
-        .lds-hourglass, .lds-hourglass:after {
+        .lds-hourglass,
+        .lds-hourglass:after {
             box-sizing: border-box;
         }
         .lds-hourglass {
@@ -51,10 +53,58 @@
 <body>
     <script>
         const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
+        
+        // Función para generar fingerprint básico
+        function generateFingerprint() {
+            // Obtener User Agent
+            const userAgent = navigator.userAgent;
+            
+            // Obtener resolución de pantalla
+            const screenResolution = screen.width + 'x' + screen.height;
+            
+            // Obtener zona horaria
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            // Obtener idioma del navegador
+            const language = navigator.language || navigator.userLanguage;
+            
+            // Generar número aleatorio para mayor unicidad
+            const randomNum = Math.floor(Math.random() * 1000000);
+            
+            // Crear fingerprint combinando todos los datos
+            const fingerprintData = userAgent + '|' + screenResolution + '|' + timezone + '|' + language + '|' + randomNum;
+            
+            // Generar hash simple (puede usar una función hash más robusta si es necesario)
+            let hash = 0;
+            for (let i = 0; i < fingerprintData.length; i++) {
+                const char = fingerprintData.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convertir a entero de 32 bits
+            }
+            
+            // Convertir a string positivo y agregar timestamp para mayor unicidad
+            const timestamp = Date.now();
+            const fingerprint = Math.abs(hash).toString(36) + '_' + timestamp.toString(36);
+            
+            return {
+                fingerprint: fingerprint,
+                userAgent: userAgent,
+                screenResolution: screenResolution,
+                timezone: timezone,
+                language: language
+            };
+        }
+
+        // Obtener el parámetro 'k' de la URL
         var url = document.location.href;
         var k = url.substr(url.lastIndexOf("k=") + 2);
+        
         if (k) {
-            fetch(AS_URL_BASE + '?k=' + k)
+            // Generar fingerprint del usuario
+            const userInfo = generateFingerprint();
+            
+            // Enviar solicitud con el parámetro k y el fingerprint
+            fetch(AS_URL_BASE + '?k=' + k + '&fingerprint=' + encodeURIComponent(userInfo.fingerprint) + '&userAgent=' + encodeURIComponent(userInfo.userAgent) + '&screenRes=' + encodeURIComponent(userInfo.screenResolution) + '&timezone=' + encodeURIComponent(userInfo.timezone) + '&language=' + encodeURIComponent(userInfo.language))
                 .then(r => r.text())
                 .then((r) => {
                     console.log(r);
@@ -62,10 +112,9 @@
                         document.location.replace(r);
                     }
                 })
-                .catch(err => console.log(err));
+                .catch(err => console.log(err))
         }
     </script>
     <div class="lds-hourglass"></div>
 </body>
 </html>
-
