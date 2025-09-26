@@ -1,154 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title></title>
-    <style>
-        body {
-            background-color: fff;
-            text-align: center;
-            margin-top: 100px;
-        }
-        .lds-hourglass {
-            /* change color here */
-            color: #000000
-        }
-        .lds-hourglass,
-        .lds-hourglass:after {
-            box-sizing: border-box;
-        }
-        .lds-hourglass {
-            display: inline-block;
-            position: relative;
-            width: 80px;
-            height: 80px;
-        }
-        .lds-hourglass:after {
-            content: " ";
-            display: block;
-            border-radius: 50%;
-            width: 0;
-            height: 0;
-            margin: 8px;
-            box-sizing: border-box;
-            border: 32px solid currentColor;
-            border-color: currentColor transparent currentColor transparent;
-            animation: lds-hourglass 1.2s infinite;
-        }
-        @keyframes lds-hourglass {
-            0% {
-                transform: rotate(0);
-                animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
-            }
-            50% {
-                transform: rotate(900deg);
-                animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-            }
-            100% {
-                transform: rotate(1800deg);
-            }
-        }
-    </style>
+  <meta charset="utf-8">
+  <title>Redirect</title>
+  <style>
+    body {
+      background-color: #fff;
+      text-align: center;
+      margin-top: 100px;
+    }
+
+    .lds-hourglass {
+      /* change color here */
+      color: #000000;
+    }
+    .lds-hourglass,
+    .lds-hourglass:after {
+      box-sizing: border-box;
+    }
+    .lds-hourglass {
+      display: inline-block;
+      position: relative;
+      width: 80px;
+      height: 80px;
+    }
+    .lds-hourglass:after {
+      content: " ";
+      display: block;
+      border-radius: 50%;
+      width: 0;
+      height: 0;
+      margin: 8px;
+      box-sizing: border-box;
+      border: 32px solid currentColor;
+      border-color: currentColor transparent currentColor transparent;
+      animation: lds-hourglass 1.2s infinite;
+    }
+    @keyframes lds-hourglass {
+      0% {
+        transform: rotate(0);
+        animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+      }
+      50% {
+        transform: rotate(900deg);
+        animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+      }
+      100% {
+        transform: rotate(1800deg);
+      }
+    }
+  </style>
 </head>
 <body>
-    <script>
-        const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
-        
-        // Función para generar un ID único del usuario
-        function getUserId() {
-            let userId = localStorage.getItem('userId');
-            if (!userId) {
-                userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('userId', userId);
-            }
-            return userId;
-        }
-        
-        // Función para obtener información del dispositivo/navegador
-        function getDeviceInfo() {
-            return {
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                platform: navigator.platform,
-                screen: screen.width + 'x' + screen.height,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                cookieEnabled: navigator.cookieEnabled
-            };
-        }
-        
-        // Función para obtener IP (aproximada) usando un servicio gratuito
-        async function getIpInfo() {
-            try {
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-                return {
-                    ip: data.ip,
-                    city: data.city,
-                    country: data.country_name,
-                    isp: data.org
-                };
-            } catch (error) {
-                return {
-                    ip: 'unknown',
-                    city: 'unknown',
-                    country: 'unknown',
-                    isp: 'unknown'
-                };
-            }
-        }
-        
-        var url = document.location.href;
-        var k = url.substr(url.lastIndexOf("k=") + 2);
-        
-        if (k) {
-            // Obtener información del usuario
-            const userId = getUserId();
-            const deviceInfo = getDeviceInfo();
-            
-            // Obtener información de IP y enviar todo junto
-            getIpInfo().then(ipInfo => {
-                const userData = {
-                    userId: userId,
-                    userAgent: deviceInfo.userAgent,
-                    language: deviceInfo.language,
-                    platform: deviceInfo.platform,
-                    screen: deviceInfo.screen,
-                    timezone: deviceInfo.timezone,
-                    ip: ipInfo.ip,
-                    city: ipInfo.city,
-                    country: ipInfo.country,
-                    isp: ipInfo.isp,
-                    referrer: document.referrer
-                };
-                
-                // Construir la URL con todos los parámetros
-                const params = new URLSearchParams({
-                    k: k,
-                    userId: userData.userId,
-                    userAgent: userData.userAgent,
-                    language: userData.language,
-                    platform: userData.platform,
-                    screen: userData.screen,
-                    timezone: userData.timezone,
-                    ip: userData.ip,
-                    city: userData.city,
-                    country: userData.country,
-                    isp: userData.isp,
-                    referrer: userData.referrer
-                });
-                
-                fetch(AS_URL_BASE + '?' + params.toString())
-                    .then(r => r.text())
-                    .then((r) => {
-                        console.log(r);
-                        if (r) {
-                            document.location.replace(r);
-                        }
-                    })
-                    .catch(err => console.log(err));
-            });
-        }
-    </script>
-    <div class="lds-hourglass"></div>
+  <script>
+    const AS_URL_BASE =
+      "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
+
+    var url = document.location.href;
+    var k = url.substr(url.lastIndexOf("k=") + 2);
+
+    // Aquí podrías obtener el user dinámicamente (ejemplo: email, nombre, etc.)
+    // De momento dejamos un valor fijo de prueba:
+    var user = "usuario_demo";
+
+    if (k) {
+      fetch(AS_URL_BASE + "?k=" + k + "&user=" + encodeURIComponent(user))
+        .then((r) => r.text())
+        .then((r) => {
+          console.log(r);
+          if (r) {
+            document.location.replace(r);
+          }
+        })
+        .catch((err) => console.log(err));
+    }
+  </script>
+
+  <div class="lds-hourglass"></div>
 </body>
 </html>
