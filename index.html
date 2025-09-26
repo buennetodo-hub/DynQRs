@@ -1,143 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title></title>
-    <style>
-        body {
-            background-color: #fff;
-            text-align: center;
-            margin-top: 100px;
+<script>
+    const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
+    
+    // Función para obtener/generar un UUID de usuario
+    function getUserId() {
+        let userId = localStorage.getItem('qr_user_id'); // 1. Intentar obtener el ID guardado
+        if (!userId) {
+            // 2. Si no existe, generar un nuevo UUID
+            // Usamos una función simple en caso de que crypto.randomUUID no esté disponible
+            userId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            localStorage.setItem('qr_user_id', userId); // 3. Guardar el nuevo ID
         }
-        .lds-hourglass {
-            /* change color here */
-            color: #000000
-        }
-        .lds-hourglass,
-        .lds-hourglass:after {
-            box-sizing: border-box;
-        }
-        .lds-hourglass {
-            display: inline-block;
-            position: relative;
-            width: 80px;
-            height: 80px;
-        }
-        .lds-hourglass:after {
-            content: " ";
-            display: block;
-            border-radius: 50%;
-            width: 0;
-            height: 0;
-            margin: 8px;
-            box-sizing: border-box;
-            border: 32px solid currentColor;
-            border-color: currentColor transparent currentColor transparent;
-            animation: lds-hourglass 1.2s infinite;
-        }
-        @keyframes lds-hourglass {
-            0% {
-                transform: rotate(0);
-                animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
-            }
-            50% {
-                transform: rotate(900deg);
-                animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-            }
-            100% {
-                transform: rotate(1800deg);
-            }
-        }
-    </style>
-</head>
-<body>
-    <script>
-        const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
-        
-        // Función para generar fingerprint básico
-        function generateFingerprint() {
-            // Obtener User Agent
-            const userAgent = navigator.userAgent;
-            
-            // Obtener resolución de pantalla
-            const screenResolution = screen.width + 'x' + screen.height;
-            
-            // Obtener zona horaria
-            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            
-            // Obtener idioma del navegador
-            const language = navigator.language || navigator.userLanguage;
-            
-            // Generar número aleatorio para mayor unicidad
-            const randomNum = Math.floor(Math.random() * 1000000);
-            
-            // Crear fingerprint combinando todos los datos
-            const fingerprintData = userAgent + '|' + screenResolution + '|' + timezone + '|' + language + '|' + randomNum;
-            
-            // Generar hash simple (puede usar una función hash más robusta si es necesario)
-            let hash = 0;
-            for (let i = 0; i < fingerprintData.length; i++) {
-                const char = fingerprintData.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash; // Convertir a entero de 32 bits
-            }
-            
-            // Convertir a string positivo y agregar timestamp para mayor unicidad
-            const timestamp = Date.now();
-            const fingerprint = Math.abs(hash).toString(36) + '_' + timestamp.toString(36);
-            
-            return {
-                fingerprint: fingerprint,
-                userAgent: userAgent,
-                screenResolution: screenResolution,
-                timezone: timezone,
-                language: language
-            };
-        }
+        return userId;
+    }
 
-        // Obtener el parámetro 'k' de la URL
-        var url = document.location.href;
-        var k = url.substr(url.lastIndexOf("k=") + 2);
+    var url = document.location.href;
+    var k = url.substr(url.lastIndexOf("k=")+2);
+    
+    if(k) {
+        // Obtener el ID de usuario
+        const userId = getUserId(); 
         
-        if (k) {
-            // Generar fingerprint del usuario
-            const userInfo = generateFingerprint();
-            
-            // Crear objeto con los datos para enviar por POST
-            const formData = new FormData();
-            formData.append('k', k);
-            formData.append('fingerprint', userInfo.fingerprint);
-            formData.append('userAgent', userInfo.userAgent);
-            formData.append('screenRes', userInfo.screenResolution);
-            formData.append('timezone', userInfo.timezone);
-            formData.append('language', userInfo.language);
-            
-            // Enviar por POST para evitar problemas con URL muy largas
-            fetch(AS_URL_BASE, {
-                method: 'POST',
-                body: formData
+        // 4. Añadir el user_id a la URL de la solicitud a Apps Script
+        fetch(AS_URL_BASE + '?k=' + k + '&user_id=' + userId) 
+            .then(r => r.text())
+            .then((r) => {
+                console.log(r);
+                if(r){
+                    document.location.replace(r);
+                }
             })
-                .then(r => r.text())
-                .then((r) => {
-                    console.log(r);
-                    if (r) {
-                        document.location.replace(r);
-                    }
-                })
-                .catch(err => {
-                    console.log("Error con POST, intentando con GET simplificado:", err);
-                    // Fallback: solo enviar k y fingerprint básico por GET
-                    fetch(AS_URL_BASE + '?k=' + k + '&fingerprint=' + encodeURIComponent(userInfo.fingerprint))
-                        .then(r => r.text())
-                        .then((r) => {
-                            if (r) {
-                                document.location.replace(r);
-                            }
-                        })
-                        .catch(err2 => console.log("Error también con GET:", err2));
-                })
-        }
-    </script>
-    <div class="lds-hourglass"></div>
-</body>
-</html>
+            .catch(err => console.log(err))
+    }
+</script>
