@@ -1,37 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title></title>
+<style>
+body { background-color: #fff; text-align: center; margin-top: 100px; }
+.lds-hourglass { /* change color here */ color: #000000 }
+.lds-hourglass, .lds-hourglass:after { box-sizing: border-box; }
+.lds-hourglass { display: inline-block; position: relative; width: 80px; height: 80px; }
+.lds-hourglass:after { content: " "; display: block; border-radius: 50%; width: 0; height: 0; margin: 8px; box-sizing: border-box; border: 32px solid currentColor; border-color: currentColor transparent currentColor transparent; animation: lds-hourglass 1.2s infinite; }
+@keyframes lds-hourglass { 0% { transform: rotate(0); animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19); } 50% { transform: rotate(900deg); animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1); } 100% { transform: rotate(1800deg); } }
+</style>
+</head>
+<body>
 <script>
-    const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
-    
-    // Función para obtener/generar un UUID de usuario
-    function getUserId() {
-        let userId = localStorage.getItem('qr_user_id'); // 1. Intentar obtener el ID guardado
-        if (!userId) {
-            // 2. Si no existe, generar un nuevo UUID
-            // Usamos una función simple en caso de que crypto.randomUUID no esté disponible
-            userId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-            localStorage.setItem('qr_user_id', userId); // 3. Guardar el nuevo ID
-        }
-        return userId;
-    }
+const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
 
-    var url = document.location.href;
-    var k = url.substr(url.lastIndexOf("k=")+2);
-    
-    if(k) {
-        // Obtener el ID de usuario
-        const userId = getUserId(); 
-        
-        // 4. Añadir el user_id a la URL de la solicitud a Apps Script
-        fetch(AS_URL_BASE + '?k=' + k + '&user_id=' + userId) 
-            .then(r => r.text())
-            .then((r) => {
-                console.log(r);
-                if(r){
-                    document.location.replace(r);
-                }
-            })
-            .catch(err => console.log(err))
-    }
+// Función para generar un ID único
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// Obtener o crear el identificador de usuario
+let userId = localStorage.getItem('userId');
+if (!userId) {
+  userId = generateUUID();
+  localStorage.setItem('userId', userId);
+}
+
+var url = document.location.href;
+var k = url.substr(url.lastIndexOf("k=")+2);
+
+if(k) {
+  // Adjuntar la clave (k) y el identificador de usuario (uid) a la URL de la solicitud
+  fetch(AS_URL_BASE + '?k=' + k + '&uid=' + userId)
+    .then(r => r.text())
+    .then((r) => {
+      console.log(r);
+      if(r){
+        document.location.replace(r);
+      }
+    })
+    .catch(err => console.log(err))
+}
 </script>
+<div class="lds-hourglass"></div>
+</body>
+</html>
