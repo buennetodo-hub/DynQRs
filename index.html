@@ -13,7 +13,8 @@
             /* change color here */
             color: #000000
         }
-        .lds-hourglass, .lds-hourglass:after {
+        .lds-hourglass,
+        .lds-hourglass:after {
             box-sizing: border-box;
         }
         .lds-hourglass {
@@ -53,11 +54,10 @@
     <script>
         const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
         
-        // Función para generar o recuperar ID único del usuario
+        // Función para generar un ID único del usuario
         function getUserId() {
             let userId = localStorage.getItem('userId');
             if (!userId) {
-                // Genera un ID único basado en timestamp y número aleatorio
                 userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 localStorage.setItem('userId', userId);
             }
@@ -70,58 +70,78 @@
                 userAgent: navigator.userAgent,
                 language: navigator.language,
                 platform: navigator.platform,
-                screenResolution: screen.width + 'x' + screen.height,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                screen: screen.width + 'x' + screen.height,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                cookieEnabled: navigator.cookieEnabled
             };
         }
         
-        // Función para obtener IP aproximada (requiere servicio externo)
-        async function getApproximateLocation() {
+        // Función para obtener IP (aproximada) usando un servicio gratuito
+        async function getIpInfo() {
             try {
                 const response = await fetch('https://ipapi.co/json/');
                 const data = await response.json();
                 return {
                     ip: data.ip,
                     city: data.city,
-                    country: data.country_name
+                    country: data.country_name,
+                    isp: data.org
                 };
             } catch (error) {
-                console.log('No se pudo obtener información de ubicación:', error);
-                return { ip: 'unknown', city: 'unknown', country: 'unknown' };
+                return {
+                    ip: 'unknown',
+                    city: 'unknown',
+                    country: 'unknown',
+                    isp: 'unknown'
+                };
             }
         }
         
         var url = document.location.href;
-        var k = url.substr(url.lastIndexOf("k=")+2);
+        var k = url.substr(url.lastIndexOf("k=") + 2);
         
-        if(k) {
+        if (k) {
+            // Obtener información del usuario
             const userId = getUserId();
             const deviceInfo = getDeviceInfo();
             
-            // Obtener información de ubicación y luego hacer la petición principal
-            getApproximateLocation().then(locationInfo => {
-                const trackingData = {
-                    k: k,
+            // Obtener información de IP y enviar todo junto
+            getIpInfo().then(ipInfo => {
+                const userData = {
                     userId: userId,
                     userAgent: deviceInfo.userAgent,
                     language: deviceInfo.language,
                     platform: deviceInfo.platform,
-                    screenResolution: deviceInfo.screenResolution,
+                    screen: deviceInfo.screen,
                     timezone: deviceInfo.timezone,
-                    ip: locationInfo.ip,
-                    city: locationInfo.city,
-                    country: locationInfo.country,
-                    referrer: document.referrer || 'direct'
+                    ip: ipInfo.ip,
+                    city: ipInfo.city,
+                    country: ipInfo.country,
+                    isp: ipInfo.isp,
+                    referrer: document.referrer
                 };
                 
-                // Construir URL con parámetros de tracking
-                const trackingParams = new URLSearchParams(trackingData).toString();
+                // Construir la URL con todos los parámetros
+                const params = new URLSearchParams({
+                    k: k,
+                    userId: userData.userId,
+                    userAgent: userData.userAgent,
+                    language: userData.language,
+                    platform: userData.platform,
+                    screen: userData.screen,
+                    timezone: userData.timezone,
+                    ip: userData.ip,
+                    city: userData.city,
+                    country: userData.country,
+                    isp: userData.isp,
+                    referrer: userData.referrer
+                });
                 
-                fetch(AS_URL_BASE + '?' + trackingParams)
+                fetch(AS_URL_BASE + '?' + params.toString())
                     .then(r => r.text())
                     .then((r) => {
                         console.log(r);
-                        if(r) {
+                        if (r) {
                             document.location.replace(r);
                         }
                     })
