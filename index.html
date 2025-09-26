@@ -187,7 +187,12 @@
                 // Construir URL con parámetros adicionales (simplificado)
                 const fetchUrl = `${AS_URL_BASE}?k=${k}&userId=${encodeURIComponent(userInfo.id)}&isNew=${userInfo.isNewUser}`;
                 
-                console.log('URL de solicitud:', fetchUrl);
+                console.log('=== DEBUG CLIENTE ===');
+                console.log('QR Key (k):', k);
+                console.log('User ID:', userInfo.id);
+                console.log('Is New User:', userInfo.isNewUser);
+                console.log('URL completa:', fetchUrl);
+                console.log('=====================');
                 
                 fetch(fetchUrl)
                     .then(r => r.text())
