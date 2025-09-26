@@ -1,81 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Redirect</title>
-  <style>
-    body {
-      background-color: #fff;
-      text-align: center;
-      margin-top: 100px;
-    }
-
-    .lds-hourglass {
-      /* change color here */
-      color: #000000;
-    }
-    .lds-hourglass,
-    .lds-hourglass:after {
-      box-sizing: border-box;
-    }
-    .lds-hourglass {
-      display: inline-block;
-      position: relative;
-      width: 80px;
-      height: 80px;
-    }
-    .lds-hourglass:after {
-      content: " ";
-      display: block;
-      border-radius: 50%;
-      width: 0;
-      height: 0;
-      margin: 8px;
-      box-sizing: border-box;
-      border: 32px solid currentColor;
-      border-color: currentColor transparent currentColor transparent;
-      animation: lds-hourglass 1.2s infinite;
-    }
-    @keyframes lds-hourglass {
-      0% {
-        transform: rotate(0);
-        animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
-      }
-      50% {
-        transform: rotate(900deg);
-        animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-      }
-      100% {
-        transform: rotate(1800deg);
-      }
-    }
-  </style>
+    <meta charset="utf-8">
+    <title></title>
+    <style>
+        body {
+            background-color: #fff;
+            text-align: center;
+            margin-top: 100px;
+        }
+        .lds-hourglass {
+            /* change color here */
+            color: #000000
+        }
+        .lds-hourglass,
+        .lds-hourglass:after {
+            box-sizing: border-box;
+        }
+        .lds-hourglass {
+            display: inline-block;
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+        .lds-hourglass:after {
+            content: " ";
+            display: block;
+            border-radius: 50%;
+            width: 0;
+            height: 0;
+            margin: 8px;
+            box-sizing: border-box;
+            border: 32px solid currentColor;
+            border-color: currentColor transparent currentColor transparent;
+            animation: lds-hourglass 1.2s infinite;
+        }
+        @keyframes lds-hourglass {
+            0% {
+                transform: rotate(0);
+                animation-timing-function: cubic-bezier(0.55, 0.055, 0.675, 0.19);
+            }
+            50% {
+                transform: rotate(900deg);
+                animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+            }
+            100% {
+                transform: rotate(1800deg);
+            }
+        }
+    </style>
 </head>
 <body>
-  <script>
-    const AS_URL_BASE =
-      "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
+    <script>
+        const AS_URL_BASE = "https://script.google.com/macros/s/AKfycbwQtDWavPfbnw1PDAPLhMSVxtgPwyIYlA2KvE4aHcfz5N30YOgheou1BPm-UHBrBuF5eQ/exec";
 
-    var url = document.location.href;
-    var k = url.substr(url.lastIndexOf("k=") + 2);
+        // Función para generar fingerprint básico
+        function generateFingerprint() {
+            // Obtener características del navegador
+            const userAgent = navigator.userAgent || "unknown";
+            const screenRes = screen.width + "x" + screen.height || "unknown";
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "unknown";
+            const language = navigator.language || "unknown";
+            
+            // Generar ID aleatorio para mayor unicidad
+            const randomId = Math.random().toString(36).substr(2, 9);
+            
+            // Crear fingerprint combinando datos
+            const fingerprintData = userAgent + "|" + screenRes + "|" + timezone + "|" + language + "|" + randomId;
+            
+            // Crear hash simple (puedes usar una función más compleja si prefieres)
+            let hash = 0;
+            for (let i = 0; i < fingerprintData.length; i++) {
+                const char = fingerprintData.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convertir a 32-bit integer
+            }
+            
+            // Convertir a string positivo
+            const fingerprint = Math.abs(hash).toString(36) + randomId.substr(0, 4);
+            
+            return {
+                fingerprint: fingerprint,
+                userAgent: userAgent,
+                screenRes: screenRes,
+                timezone: timezone,
+                language: language
+            };
+        }
 
-    // Aquí podrías obtener el user dinámicamente (ejemplo: email, nombre, etc.)
-    // De momento dejamos un valor fijo de prueba:
-    var user = "usuario_demo";
+        // Obtener parámetro 'k' de la URL
+        var url = document.location.href;
+        var k = url.substr(url.lastIndexOf("k=") + 2);
 
-    if (k) {
-      fetch(AS_URL_BASE + "?k=" + k + "&user=" + encodeURIComponent(user))
-        .then((r) => r.text())
-        .then((r) => {
-          console.log(r);
-          if (r) {
-            document.location.replace(r);
-          }
-        })
-        .catch((err) => console.log(err));
-    }
-  </script>
+        if (k) {
+            // Generar fingerprint del usuario
+            const userInfo = generateFingerprint();
+            
+            // Preparar datos para enviar
+            const params = new URLSearchParams({
+                k: k,
+                fingerprint: userInfo.fingerprint,
+                userAgent: userInfo.userAgent,
+                screenRes: userInfo.screenRes,
+                timezone: userInfo.timezone,
+                language: userInfo.language
+            });
 
-  <div class="lds-hourglass"></div>
+            // Enviar solicitud con información del usuario
+            fetch(AS_URL_BASE + '?' + params.toString())
+                .then(r => r.text())
+                .then((r) => {
+                    console.log(r);
+                    if (r) {
+                        document.location.replace(r);
+                    }
+                })
+                .catch(err => console.log(err));
+        }
+    </script>
+    <div class="lds-hourglass"></div>
 </body>
 </html>
