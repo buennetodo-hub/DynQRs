@@ -184,11 +184,10 @@
                 `;
                 document.body.appendChild(debugDiv);
                 
-                // Construir URL con parámetros adicionales
-                const fetchUrl = `${AS_URL_BASE}?k=${k}&userId=${encodeURIComponent(userInfo.id)}&isNew=${userInfo.isNewUser}&deviceType=${encodeURIComponent(userInfo.deviceInfo.type)}&deviceOS=${encodeURIComponent(userInfo.deviceInfo.os)}&deviceTimestamp=${encodeURIComponent(userInfo.deviceInfo.timestamp)}`;
+                // Construir URL con parámetros adicionales (simplificado)
+                const fetchUrl = `${AS_URL_BASE}?k=${k}&userId=${encodeURIComponent(userInfo.id)}&isNew=${userInfo.isNewUser}`;
                 
-                // Debug: mostrar la URL que se va a enviar
-                console.log('URL completa que se enviará:', fetchUrl);
+                console.log('URL de solicitud:', fetchUrl);
                 
                 fetch(fetchUrl)
                     .then(r => r.text())
